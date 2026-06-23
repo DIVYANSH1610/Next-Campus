@@ -17,30 +17,26 @@ export default async function CollegePage({
 
   const college = await prisma.college.findUnique({
     where: { slug },
-    include: {
-      courses: true,
-      reviews: true,
-    },
+    include: { courses: true, reviews: true },
   });
 
-  if (!college) {
-    notFound();
-  }
+  if (!college) notFound();
 
   return (
     <main className="min-h-screen bg-[#EAF6FF] text-[#123A5E]">
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        {/* BACK */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+
+        {/* ── BACK ── */}
         <Link
           href="/colleges"
-          className="text-sm text-[#5E7A99] hover:text-[#123A5E]"
+          className="inline-flex items-center gap-1 text-sm text-[#5E7A99] hover:text-[#123A5E] transition-colors mb-4 sm:mb-6"
         >
           ← Back to Explore
         </Link>
 
-        {/* HERO IMAGE */}
+        {/* ── HERO IMAGE ── */}
         {college.imageUrl && (
-          <div className="mt-6 mb-6 h-72 w-full overflow-hidden rounded-2xl border border-[#D6ECFB] bg-[#D6ECFB]">
+          <div className="mb-6 h-48 sm:h-64 md:h-72 w-full overflow-hidden rounded-2xl border border-[#D6ECFB] bg-[#D6ECFB]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={college.imageUrl}
@@ -50,20 +46,18 @@ export default async function CollegePage({
           </div>
         )}
 
-        {/* HEADER */}
-        <div className="border-b border-[#D6ECFB] pb-6 flex flex-wrap items-start justify-between gap-3">
-          <div>
+        {/* ── HEADER ── */}
+        <div className="border-b border-[#D6ECFB] pb-5 sm:pb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="flex-1 min-w-0">
             {college.type && (
               <p className="text-[11px] uppercase font-mono text-[#FF8A5B]">
                 {college.type}
               </p>
             )}
-
-            <h1 className="font-sans font-extrabold text-4xl mt-2 tracking-tight">
+            <h1 className="font-sans font-extrabold text-2xl sm:text-3xl md:text-4xl mt-1 sm:mt-2 tracking-tight leading-tight">
               {college.name}
             </h1>
-
-            <p className="text-[#5E7A99] mt-1">
+            <p className="text-[#5E7A99] mt-1 text-sm sm:text-base">
               {college.city}, {college.state}
               {college.establishedYear && (
                 <span className="text-[#5E7A99]/70"> · est. {college.establishedYear}</span>
@@ -72,19 +66,21 @@ export default async function CollegePage({
           </div>
 
           {college.nirfRank && (
-            <div className="bg-[#123A5E] text-white text-xs font-mono px-3 py-1.5 rounded-full">
+            <div className="self-start bg-[#123A5E] text-white text-xs font-mono px-3 py-1.5 rounded-full whitespace-nowrap">
               NIRF #{college.nirfRank}
             </div>
           )}
         </div>
 
-        {/* GRID */}
-        <div className="grid md:grid-cols-3 gap-6 mt-8">
-          {/* OVERVIEW */}
-          <div className="md:col-span-2 bg-white border border-[#D6ECFB] rounded-2xl p-6">
-            <h2 className="font-sans font-bold text-xl mb-3">Overview</h2>
-            <p className="text-[#5E7A99] leading-relaxed">{college.description}</p>
+        {/* ── OVERVIEW + STATS GRID ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
 
+          {/* Overview */}
+          <div className="md:col-span-2 bg-white border border-[#D6ECFB] rounded-2xl p-5 sm:p-6">
+            <h2 className="font-sans font-bold text-lg sm:text-xl mb-3">Overview</h2>
+            <p className="text-[#5E7A99] leading-relaxed text-sm sm:text-base">
+              {college.description}
+            </p>
             {college.website && (
               <a
                 href={college.website}
@@ -97,64 +93,58 @@ export default async function CollegePage({
             )}
           </div>
 
-          {/* STATS */}
-          <div className="bg-white border border-[#D6ECFB] rounded-2xl p-6">
-            <h2 className="font-sans font-bold text-xl mb-4">Stats</h2>
-
-            <div className="space-y-4 text-sm">
-              <div>
-                <p className="text-[11px] font-mono text-[#5E7A99]">Rating</p>
-                <p className="font-mono">★ {college.rating.toFixed(1)}</p>
-              </div>
-
-              <div>
-                <p className="text-[11px] font-mono text-[#5E7A99]">Avg package</p>
-                <p className="font-mono">{formatINR(college.avgPackage)}</p>
-              </div>
-
-              <div>
-                <p className="text-[11px] font-mono text-[#5E7A99]">Highest package</p>
-                <p className="font-mono">{formatINR(college.highestPackage)}</p>
-              </div>
-
-              <div>
-                <p className="text-[11px] font-mono text-[#5E7A99]">Fees / yr</p>
-                <p className="font-mono">{formatINR(college.fees)}</p>
-              </div>
-
+          {/* Stats */}
+          <div className="bg-white border border-[#D6ECFB] rounded-2xl p-5 sm:p-6">
+            <h2 className="font-sans font-bold text-lg sm:text-xl mb-4">Stats</h2>
+            <div className="grid grid-cols-2 md:grid-cols-1 gap-4 text-sm">
+              {[
+                { label: "Rating", value: `★ ${college.rating.toFixed(1)}` },
+                { label: "Avg package", value: formatINR(college.avgPackage) },
+                { label: "Highest package", value: formatINR(college.highestPackage) },
+                { label: "Fees / yr", value: formatINR(college.fees) },
+              ].map((stat) => (
+                <div key={stat.label}>
+                  <p className="text-[11px] font-mono text-[#5E7A99] uppercase tracking-wide">{stat.label}</p>
+                  <p className="font-mono mt-0.5">{stat.value}</p>
+                </div>
+              ))}
               {college.exams?.length > 0 && (
-                <div>
-                  <p className="text-[11px] font-mono text-[#5E7A99]">Exams</p>
-                  <p>{college.exams.join(", ")}</p>
+                <div className="col-span-2 md:col-span-1">
+                  <p className="text-[11px] font-mono text-[#5E7A99] uppercase tracking-wide">Exams</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {college.exams.map((exam) => (
+                      <span key={exam} className="text-[10px] font-mono bg-[#EAF6FF] border border-[#D6ECFB] rounded-full px-2 py-0.5 text-[#5E7A99]">
+                        {exam}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* COURSES */}
+        {/* ── COURSES ── */}
         {college.courses?.length > 0 && (
-          <div className="mt-10">
-            <h2 className="font-sans font-bold text-2xl mb-4">Courses</h2>
-
-            <div className="grid md:grid-cols-3 gap-4">
+          <div className="mt-8 sm:mt-10">
+            <h2 className="font-sans font-bold text-xl sm:text-2xl mb-4">Courses</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               {college.courses.map((course) => (
                 <div key={course.id} className="bg-white border border-[#D6ECFB] rounded-2xl p-4">
-                  <p className="font-medium">{course.name}</p>
-                  <p className="text-sm text-[#5E7A99]">{course.duration}</p>
-                  <p className="font-mono mt-2">{formatINR(course.fees)}</p>
+                  <p className="font-medium text-sm sm:text-base">{course.name}</p>
+                  <p className="text-sm text-[#5E7A99] mt-1">{course.duration}</p>
+                  <p className="font-mono mt-2 text-sm">{formatINR(course.fees)}</p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* REVIEWS */}
+        {/* ── REVIEWS ── */}
         {college.reviews?.length > 0 && (
-          <div className="mt-10">
-            <h2 className="font-sans font-bold text-2xl mb-4">Reviews</h2>
-
-            <div className="grid md:grid-cols-2 gap-4">
+          <div className="mt-8 sm:mt-10">
+            <h2 className="font-sans font-bold text-xl sm:text-2xl mb-4">Reviews</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {college.reviews.map((review) => (
                 <div key={review.id} className="bg-white border border-[#D6ECFB] rounded-2xl p-4">
                   <p className="font-mono text-sm">★ {review.rating.toFixed(1)}</p>
@@ -165,15 +155,14 @@ export default async function CollegePage({
           </div>
         )}
 
-        {/* CTA */}
-        <div className="mt-12 flex gap-3">
+        {/* ── CTA ── */}
+        <div className="mt-10 sm:mt-12 flex flex-col sm:flex-row gap-3">
           <Link
             href={`/compare?add=${college.slug}`}
-            className="bg-[#2EC4F1] text-white px-6 py-3 text-sm font-semibold rounded-full hover:bg-[#2EC4F1]/90 transition-colors"
+            className="bg-[#2EC4F1] text-white px-6 py-3 text-sm font-semibold rounded-full hover:bg-[#2EC4F1]/90 transition-colors text-center"
           >
             Compare college
           </Link>
-
           <SaveButtonClient collegeId={college.id} />
         </div>
       </div>
