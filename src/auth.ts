@@ -19,9 +19,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: {},
         password: {},
       },
+
       async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
+          where: {
+            email: credentials.email as string,
+          },
         });
 
         if (!user) return null;
@@ -33,7 +40,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!isValid) return null;
 
-        return user;
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        };
       },
     }),
   ],
@@ -44,7 +55,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   callbacks: {
     async jwt({ token, user }) {
-      if (user) token.id = user.id;
+      if (user) {
+        token.id = user.id;
+      }
+
       return token;
     },
 
@@ -52,6 +66,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
       }
+
       return session;
     },
   },
