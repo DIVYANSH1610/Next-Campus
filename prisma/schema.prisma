@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+
+  reviews       Review[]
+  savedColleges SavedCollege[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model College {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+
+  state           String
+  city            String
+
+  description     String
+  type            String?  // IIT, NIT, Private, IIIT, Govt
+
+  fees            Int
+  rating          Float
+
+  avgPackage      Float
+  highestPackage  Float
+
+  nirfRank        Int?
+  establishedYear Int?
+
+  imageUrl        String?
+  website         String?
+
+  exams           String[] // IMPORTANT: JEE, NEET etc.
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  courses Course[]
+  reviews Review[]
+  savedBy SavedCollege[]
+}
+
+model Course {
+  id        String @id @default(cuid())
+
+  name      String
+  duration  String
+  fees      Int
+
+  collegeId String
+  college   College @relation(fields: [collegeId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Review {
+  id        String @id @default(cuid())
+
+  rating    Float
+  comment   String
+
+  userId    String
+  collegeId String
+
+  user       User    @relation(fields: [userId], references: [id])
+  college    College @relation(fields: [collegeId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model SavedCollege {
+  id        String @id @default(cuid())
+
+  userId    String
+  collegeId String
+
+  user      User    @relation(fields: [userId], references: [id])
+  college   College @relation(fields: [collegeId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, collegeId])
+}
+
+model Exam {
+  id          String @id @default(cuid())
+  name        String
+  slug        String @unique
+
+  description String
+  difficulty  String // Easy / Medium / Hard
+
+  avgStudents Int
+
+  createdAt DateTime @default(now())
+}
