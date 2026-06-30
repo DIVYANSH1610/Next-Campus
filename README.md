@@ -1,176 +1,127 @@
-# NextCampus 🎓
+# NextCampus
 
-> **India's smart college discovery platform** — explore, compare, and save your dream colleges.
+A full-stack platform for discovering, comparing, and shortlisting Indian engineering colleges — built with Next.js, PostgreSQL, and a Retrieval-Augmented Generation (RAG) layer powered by Gemini.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-next--campus--pearl.vercel.app-0EA5E9?style=for-the-badge&logo=vercel)](https://next-campus-pearl.vercel.app)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript)](https://typescriptlang.org)
-[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma)](https://prisma.io)
+## What it does
 
----
+- **Explore** 28+ real Indian engineering colleges (IITs, NITs, IIITs, and top private/government institutions) with search, state, and type filters
+- **Compare** up to 3 colleges side-by-side on fees, ratings, average and highest packages
+- **Save** colleges to a personal dashboard (JWT-authenticated)
+- **AI College Advisor** — a floating chat widget that answers natural-language questions ("which college has the best ROI under ₹2L fees?") grounded in real college data via vector search, not hallucinated
+- **AI Insights** on every college detail page — ROI analysis and similar-college comparisons grounded in real numbers, plus a clearly-labeled "AI-speculated, unverified" section for general category-level inferences about campus life and activities
+- **AI Verdict** on the Compare page — synthesizes the real stats of selected colleges into a grounded recommendation
 
-## ✨ What is NextCampus?
+## Tech stack
 
-NextCampus helps Indian students make smarter college decisions. Instead of scattered information across dozens of websites, NextCampus brings everything into one clean, fast, and modern platform — rankings, fees, placement packages, courses, and more.
+**Frontend:** Next.js 16 (App Router), React, TypeScript, Tailwind CSS, Framer Motion
+**Backend:** Next.js API Routes, Prisma ORM
+**Database:** PostgreSQL (Neon), with `pgvector` for embedding-based similarity search
+**AI / RAG:** Google Gemini (`gemini-embedding-001` for embeddings, `gemini-flash-latest` for generation)
+**Auth:** Manual JWT-based authentication with bcrypt password hashing
 
----
-
-## 🖼️ Screenshots
-
-| Homepage | College Listing | Compare |
-|----------|----------------|---------|
-| Cinematic hero with campus video | Search, filter, save | Side-by-side comparison table |
-
----
-
-## 🚀 Features
-
-- 🎬 **Cinematic Homepage** — full-screen campus video hero with animated gradient orbs
-- 🔍 **College Discovery** — search and filter 30+ institutions by rank, fees, city, type
-- ⚖️ **Smart Comparison** — compare up to 3 colleges side-by-side with best-value highlights
-- ❤️ **Save & Track** — bookmark colleges and manage them from your personal dashboard
-- 🔐 **Authentication** — JWT-based credentials login + Google OAuth via NextAuth
-- 📊 **Rich College Data** — NIRF rank, avg/highest packages, fees, ratings, courses, reviews
-- 📱 **Fully Responsive** — works seamlessly on mobile, tablet, and desktop
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS + ShadCN UI |
-| Animation | Framer Motion |
-| ORM | Prisma |
-| Database | PostgreSQL (Neon) |
-| Auth | NextAuth v5 (JWT + Google OAuth) |
-| Icons | Lucide React |
-| Deployment | Vercel |
-
----
-
-## 📁 Project Structure
+## Architecture: the RAG layer
 
 ```
-src/
-├── app/
-│   ├── (pages)/
-│   │   ├── colleges/          # College listing + detail pages
-│   │   │   └── [slug]/        # Dynamic college detail
-│   │   ├── compare/           # Side-by-side comparison
-│   │   ├── dashboard/         # User saved colleges
-│   │   ├── login/             # Login page
-│   │   └── signup/            # Signup page
-│   ├── api/
-│   │   ├── colleges/          # GET colleges, GET by slug
-│   │   ├── saved/             # POST add, GET list
-│   │   └── auth/              # Signup, login endpoints
-│   └── layout.tsx
-├── components/
-│   └── navbar.tsx
-├── auth.ts                    # NextAuth configuration
-└── lib/
-    └── utils.ts
+User question
+   ↓
+Embed query (Gemini, 768-dim)
+   ↓
+Cosine-similarity search via pgvector (inside the same Postgres instance — no separate vector DB)
+   ↓
+Top-K matching colleges injected as context
+   ↓
+Gemini generates a grounded answer, citing real colleges only
 ```
 
----
+`pgvector` runs directly inside the existing Neon Postgres database rather than a separate vector store (Pinecone, ChromaDB, etc.) — a deliberate infrastructure tradeoff appropriate for a dataset of this size, avoiding unnecessary infra sprawl.
 
-## ⚡ Getting Started
+AI-generated content is split into two clearly distinguished categories throughout the app:
+- **Grounded** — derived only from real stored numbers (fees, packages, ratings), labeled "Grounded in real data"
+- **Speculative** — general, hedged inferences about institution *categories* (not specific unverified claims about a named college), visually separated and explicitly labeled "AI-speculated, unverified"
+
+## Getting started
 
 ### Prerequisites
 - Node.js 18+
-- PostgreSQL database (or Neon free tier)
+- A PostgreSQL database with the `pgvector` extension available (Neon supports this natively)
+- A Gemini API key ([aistudio.google.com](https://aistudio.google.com))
 
-### Installation
+### Setup
 
-```bash
-# Clone the repo
-git clone https://github.com/DIVYANSH1610/Next-Campus.git
-cd Next-Campus
+1. Clone and install:
+   ```bash
+   git clone <repo-url>
+   cd next-campus
+   npm install
+   ```
 
-# Install dependencies
-npm install
+2. Create `.env` (see `.env.example` if present, or the variables below):
+   ```
+   DATABASE_URL="postgresql://..."
+   JWT_SECRET="<generate a strong random secret>"
+   GEMINI_API_KEY="..."
+   ```
 
-# Set up environment variables
-cp .env.example .env.local
+3. Run migrations:
+   ```bash
+   npx prisma generate
+   npx prisma migrate dev
+   ```
+
+4. Seed the database:
+   ```bash
+   npx prisma db seed
+   ```
+
+5. Generate embeddings for AI features:
+   ```bash
+   npx tsx scripts/generate-embeddings.ts
+   ```
+
+6. Run the dev server:
+   ```bash
+   npm run dev
+   ```
+
+## Project structure
+
+```
+src/
+  app/
+    api/
+      ai/
+        ask/[POST]          - RAG chat endpoint
+        insights/[slug]     - Cached AI insights per college
+        compare/[POST]      - AI comparison verdict
+      auth/                 - Login / register
+      colleges/             - College listing + detail API
+      saved/                - Saved-college endpoints
+    colleges/                - Explore + detail pages
+    compare/                 - Compare page
+    dashboard/               - User dashboard
+  components/
+    AIAdvisor.tsx            - Floating RAG chat widget
+    AIInsights.tsx           - Per-college grounded + speculative insights
+    CompareAIVerdict.tsx     - AI comparison summary
+    Navbar.tsx
+  lib/
+    gemini.ts                - Gemini API wrapper (embeddings, generation, retry logic)
+    prisma.ts                - Shared Prisma client
+prisma/
+  schema.prisma
+  data/colleges.ts           - Seed data (28 colleges)
+  migrations/
+scripts/
+  generate-embeddings.ts     - One-time/repeatable embedding generation
 ```
 
-### Environment Variables
+## Known limitations / next steps
 
-Create a `.env.local` file in the root:
+- JWT is stored in `localStorage`; moving to httpOnly cookies is the standard hardening step before any real production use
+- AI-speculated content (campus life, clubs, fests) is explicitly unverified — real enrichment would require sourced student reviews or verified institutional data
+- No automated tests yet
+- Not yet deployed to a live URL
 
-```env
-DATABASE_URL=your_postgresql_connection_string
-JWT_SECRET=your_jwt_secret_key
-GOOGLE_CLIENT_ID=your_google_oauth_client_id
-GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your_nextauth_secret
-```
+## License
 
-### Database Setup
-
-```bash
-# Push schema to database
-npx prisma migrate deploy
-
-# Seed colleges data
-npx prisma db seed
-
-# Open Prisma Studio (optional)
-npx prisma studio
-```
-
-### Run Locally
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
-## 🗺️ Roadmap
-
-- [ ] 🤖 AI College Recommender (JEE rank + budget + state → best colleges)
-- [ ] 🔄 Infinite scroll on college listing
-- [ ] 🔎 Advanced filters (state, fees range, NIRF rank, package)
-- [ ] ⭐ Student reviews and ratings
-- [ ] 🌙 Dark mode
-- [ ] 📰 Featured colleges carousel on homepage
-- [ ] 🏆 Alumni success stories section
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please open an issue first to discuss what you'd like to change.
-
-```bash
-# Fork the repo, then:
-git checkout -b feature/your-feature-name
-git commit -m "feat: add your feature"
-git push origin feature/your-feature-name
-# Open a Pull Request
-```
-
----
-
-## 📄 License
-
-MIT License — feel free to use this project for learning or building upon it.
-
----
-
-## 👨‍💻 Author
-
-**Divyansh** — [@DIVYANSH1610](https://github.com/DIVYANSH1610)
-
-⭐ If you found this useful, please star the repo — it helps a lot!
-
----
-
-<p align="center">Built with ❤️ for Indian students</p>
+Personal/educational project.

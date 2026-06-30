@@ -1,5 +1,6 @@
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import AIAdvisor from "@/components/AIAdvisor";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Inter } from "next/font/google";
@@ -18,6 +19,7 @@ export default function RootLayout({
     <html lang="en" className={cn("font-sans", geist.variable)}>
       <body>
         <Navbar />
+        <AIAdvisor />
         <main>{children}</main>
       </body>
     </html>

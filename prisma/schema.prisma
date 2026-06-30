@@ -47,7 +47,11 @@ model College {
   imageUrl        String?
   website         String?
 
-  exams           String[] // IMPORTANT: JEE, NEET etc.
+  exams           String[]
+  
+  embedding              Unsupported("vector(768)")?
+  aiInsights             String?   // cached JSON blob, see AIInsights type
+  aiInsightsGeneratedAt  DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

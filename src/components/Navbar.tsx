@@ -18,45 +18,40 @@ export default function Navbar() {
 
   useEffect(() => {
     setLoggedIn(!!localStorage.getItem("token"));
-  }, [pathname]);
-
-  // Close menu on route change
-  useEffect(() => {
-    setMenuOpen(false);
+    setMenuOpen(false); // close mobile menu on route change
   }, [pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     setLoggedIn(false);
+    setMenuOpen(false);
     router.push("/");
   };
 
-  const navigate = (href: string) => {
+  const go = (href: string) => {
     setMenuOpen(false);
     router.push(href);
   };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[#D6ECFB] bg-white/90 backdrop-blur">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
-
-        {/* Logo */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
         <button
-          onClick={() => navigate("/")}
-          className="font-sans font-extrabold text-lg sm:text-xl tracking-tight text-[#123A5E] flex items-center gap-1.5 shrink-0"
+          onClick={() => go("/")}
+          className="font-sans font-extrabold text-xl tracking-tight text-[#123A5E] flex items-center gap-1.5"
         >
           <span className="w-2.5 h-2.5 rounded-full bg-[#2EC4F1]" />
           NextCampus
         </button>
 
-        {/* Desktop links */}
+        {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1">
           {LINKS.map((link) => {
             const active = pathname === link.href;
             return (
               <button
                 key={link.href}
-                onClick={() => navigate(link.href)}
+                onClick={() => go(link.href)}
                 className={`text-sm font-medium px-3.5 py-1.5 rounded-full transition-colors ${
                   active
                     ? "bg-[#2EC4F1] text-white"
@@ -80,13 +75,13 @@ export default function Navbar() {
           ) : (
             <>
               <button
-                onClick={() => navigate("/login")}
+                onClick={() => go("/login")}
                 className="text-sm font-medium px-3.5 py-1.5 rounded-full text-[#5E7A99] hover:text-[#123A5E] hover:bg-[#EAF6FF] transition-colors"
               >
                 Login
               </button>
               <button
-                onClick={() => navigate("/signup")}
+                onClick={() => go("/signup")}
                 className="text-sm font-medium px-4 py-1.5 rounded-full bg-[#FF8A5B] text-white hover:bg-[#FF8A5B]/90 transition-colors"
               >
                 Sign up
@@ -97,27 +92,27 @@ export default function Navbar() {
 
         {/* Mobile hamburger */}
         <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden p-2 rounded-lg text-[#123A5E] hover:bg-[#EAF6FF] transition-colors"
+          onClick={() => setMenuOpen((v) => !v)}
+          className="md:hidden text-[#123A5E] p-2 -mr-2"
           aria-label="Toggle menu"
         >
-          {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          {menuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
-      {/* Mobile menu dropdown */}
+      {/* Mobile dropdown panel */}
       {menuOpen && (
-        <div className="md:hidden border-t border-[#D6ECFB] bg-white/95 backdrop-blur px-4 py-4 space-y-1">
+        <div className="md:hidden border-t border-[#D6ECFB] bg-white px-4 py-3 flex flex-col gap-1">
           {LINKS.map((link) => {
             const active = pathname === link.href;
             return (
               <button
                 key={link.href}
-                onClick={() => navigate(link.href)}
-                className={`w-full text-left text-sm font-medium px-4 py-2.5 rounded-xl transition-colors ${
+                onClick={() => go(link.href)}
+                className={`text-left text-sm font-medium px-3 py-2.5 rounded-xl transition-colors ${
                   active
                     ? "bg-[#2EC4F1] text-white"
-                    : "text-[#5E7A99] hover:text-[#123A5E] hover:bg-[#EAF6FF]"
+                    : "text-[#5E7A99] hover:bg-[#EAF6FF]"
                 }`}
               >
                 {link.label}
@@ -130,25 +125,25 @@ export default function Navbar() {
           {loggedIn ? (
             <button
               onClick={handleLogout}
-              className="w-full text-left text-sm font-medium px-4 py-2.5 rounded-xl text-[#5E7A99] hover:text-[#123A5E] hover:bg-[#EAF6FF] transition-colors"
+              className="text-left text-sm font-medium px-3 py-2.5 rounded-xl text-[#5E7A99] hover:bg-[#EAF6FF] transition-colors"
             >
               Logout
             </button>
           ) : (
-            <div className="flex gap-2 pt-1">
+            <>
               <button
-                onClick={() => navigate("/login")}
-                className="flex-1 text-sm font-medium px-4 py-2.5 rounded-xl border border-[#D6ECFB] text-[#123A5E] hover:bg-[#EAF6FF] transition-colors"
+                onClick={() => go("/login")}
+                className="text-left text-sm font-medium px-3 py-2.5 rounded-xl text-[#5E7A99] hover:bg-[#EAF6FF] transition-colors"
               >
                 Login
               </button>
               <button
-                onClick={() => navigate("/signup")}
-                className="flex-1 text-sm font-medium px-4 py-2.5 rounded-xl bg-[#FF8A5B] text-white hover:bg-[#FF8A5B]/90 transition-colors"
+                onClick={() => go("/signup")}
+                className="text-left text-sm font-medium px-3 py-2.5 rounded-xl bg-[#FF8A5B] text-white"
               >
                 Sign up
               </button>
-            </div>
+            </>
           )}
         </div>
       )}
