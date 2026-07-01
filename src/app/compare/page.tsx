@@ -22,7 +22,8 @@ function formatINR(value: number) {
   return `₹${value.toLocaleString("en-IN")}`;
 }
 
-export default function ComparePage() {
+// Inner component that calls useSearchParams — must be inside <Suspense>
+function ComparePageInner() {
   const searchParams = useSearchParams();
   const [colleges, setColleges] = useState<College[]>([]);
   const [selected, setSelected] = useState<College[]>([]);
@@ -36,7 +37,6 @@ export default function ComparePage() {
         const list: College[] = json?.data ?? [];
         setColleges(list);
 
-        // Pre-select a college if arriving via ?add=slug from a detail page.
         const addSlug = searchParams.get("add");
         if (addSlug) {
           const match = list.find((c) => c.slug === addSlug);
@@ -74,7 +74,7 @@ export default function ComparePage() {
   return (
     <div className="min-h-screen bg-[#EAF6FF] text-[#123A5E]">
       <header className="border-b border-[#D6ECFB] bg-[#EAF6FF]/95 backdrop-blur sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-6 py-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
           <p className="text-xs uppercase tracking-[0.2em] text-[#FF8A5B] font-mono mb-1">
             Side-by-side
           </p>
@@ -87,8 +87,7 @@ export default function ComparePage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        {/* Selection grid */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -128,7 +127,6 @@ export default function ComparePage() {
           {selected.length} / 3 selected
         </p>
 
-        {/* Comparison table */}
         {selected.length > 0 ? (
           <div className="mt-8 overflow-x-auto border border-[#D6ECFB] rounded-2xl bg-white">
             <table className="w-full text-sm">
@@ -172,5 +170,15 @@ export default function ComparePage() {
         )}
       </main>
     </div>
+  );
+}
+
+// Default export wraps the inner component in Suspense —
+// required by Next.js production builds whenever useSearchParams() is used.
+export default function ComparePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#EAF6FF]" />}>
+      <ComparePageInner />
+    </Suspense>
   );
 }
